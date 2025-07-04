@@ -16,6 +16,10 @@ You prefer concise and deep responses and always aim for meaningful output.
 """
 
 app = Flask(__name__)
+
+# إعداد CORS
+CORS(app, resources={r"/api": {"origins": "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"}})
+
 @app.after_request
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"
@@ -23,16 +27,16 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
     return response
 
-CORS(app, resources={r"/api": {"origins": "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"}})
-
-
-
+# تحميل النموذج
 print("🚀 Loading model to CUDA...")
 model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-7B-Chat", device_map="auto", trust_remote_code=True)
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-7B-Chat", trust_remote_code=True)
 
-@app.route("/api", methods=["POST"])
+@app.route("/api", methods=["POST", "OPTIONS"])
 def api():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+
     data = request.get_json()
     msg = data.get("message", "")
 
