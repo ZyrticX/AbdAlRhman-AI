@@ -16,7 +16,8 @@ You prefer concise and deep responses and always aim for meaningful output.
 """
 
 app = Flask(__name__)
-CORS(app, resources={r"/api": {"origins": "*"}})
+CORS(app, resources={r"/api": {"origins": "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"}})
+
 
 
 print("🚀 Loading model to CUDA...")
