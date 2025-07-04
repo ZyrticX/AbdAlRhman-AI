@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from core.model import model_chat_with_qwen
 from tools.memory_manager import save_interaction, retrieve_recent_memories
@@ -17,29 +16,21 @@ You prefer concise and deep responses and always aim for meaningful output.
 
 app = Flask(__name__)
 
-# إعداد CORS
-CORS(app, resources={r"/api": {"origins": "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"}})
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-    response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
-    return response
-
-# تحميل النموذج
-print("🚀 Loading model to CUDA...")
-model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-7B-Chat", device_map="auto", trust_remote_code=True)
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-7B-Chat", trust_remote_code=True)
+# ✅ إعداد CORS بشكل يسمح لواجهة Vercel بالوصول
+CORS(app, origins=["https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"])
 
 @app.route("/api", methods=["POST", "OPTIONS"])
 def api():
     if request.method == "OPTIONS":
-        return jsonify({"status": "ok"}), 200
+        # رد على طلبات preflight
+        response = app.make_default_options_response()
+        response.headers.add("Access-Control-Allow-Origin", "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
+        return response
 
     data = request.get_json()
     msg = data.get("message", "")
-
     if not msg:
         return jsonify({"error": "Empty message"}), 400
 
@@ -48,7 +39,6 @@ def api():
     if time_ctx:
         print("🕒 Time context:", time_ctx)
 
-    # الذكريات
     memory_context = "\n".join(
         [f"user: {u}\nassistant: {a}" for u, a in reversed(retrieve_recent_memories())]
     )
@@ -61,7 +51,10 @@ def api():
     save_interaction(msg, reply)
     return jsonify({"reply": reply})
 
+print("🚀 Loading model to CUDA...")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-7B-Chat", device_map="auto", trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-7B-Chat", trust_remote_code=True)
+
 if __name__ == "__main__":
     print("✅ Abd al-Rahman API is ready at http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000)
-
