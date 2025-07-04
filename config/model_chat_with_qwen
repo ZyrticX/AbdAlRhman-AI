@@ -1,0 +1,5 @@
+messages = [
+    {"role": "system", "content": PERSONALITY},
+    {"role": "user", "content": prompt}
+]
+
