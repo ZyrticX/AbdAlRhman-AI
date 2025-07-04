@@ -16,6 +16,13 @@ You prefer concise and deep responses and always aim for meaningful output.
 """
 
 app = Flask(__name__)
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
+    return response
+
 CORS(app, resources={r"/api": {"origins": "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"}})
 
 
