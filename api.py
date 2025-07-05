@@ -8,15 +8,20 @@ from tools.time_context import extract_time_context
 
 app = Flask(__name__)
 
-# ✅ CORS يدوي + تلقائي
-CORS(app, supports_credentials=True)
-
-# ❗️اجعل Vercel دومينك الأساسي هنا
+# السماح بالدومين الصحيح فقط
 ALLOWED_ORIGIN = "https://abd-alrhman-frontend.vercel.app"
 
-# تحميل النموذج لاحقاً
-model = None
-tokenizer = None
+# تفعيل CORS عام
+CORS(app, supports_credentials=True)
+
+# ✅ التعامل الصريح مع preflight requests لمنصة Render
+@app.route('/api', methods=['OPTIONS'])
+def handle_options():
+    response = make_response()
+    response.headers["Access-Control-Allow-Origin"] = ALLOWED_ORIGIN
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
+    return response, 204
 
 @app.after_request
 def add_cors_headers(response):
@@ -25,13 +30,18 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
     return response
 
+# تحميل النموذج (سيتم تحميله عند أول طلب)
+model = None
+tokenizer = None
+
 @app.route("/api", methods=["POST", "OPTIONS"])
 def api():
     if request.method == "OPTIONS":
         return make_response(('', 204))
 
+    global model, tokenizer
     if model is None or tokenizer is None:
-        return jsonify({"error": "Model not loaded"}), 503
+        model, tokenizer = model_chat_with_qwen()
 
     data = request.get_json()
     msg = data.get("message", "")
@@ -55,17 +65,17 @@ def api():
     You speak clearly in Arabic or English as needed, with warmth but precision.
     You prefer concise and deep responses and always aim for meaningful output.
     """
-    
-    prompt = f"{PERSONALITY}\n{memory_context_trimmed}\nuser: {msg}\nassistant:"
-    reply = model_chat_with_qwen(model, tokenizer, prompt)
 
-    save_interaction(msg, reply)
-    return jsonify({"reply": reply})
+    full_prompt = f"{PERSONALITY}\n{memory_context_trimmed}\nuser: {msg}\nassistant:"
+    input_ids = tokenizer(full_prompt, return_tensors="pt").input_ids.cuda()
+    output = model.generate(input_ids, max_new_tokens=200)
+    response_text = tokenizer.decode(output[0], skip_special_tokens=True)
+
+    answer = response_text.split("assistant:")[-1].strip()
+    save_interaction(msg, answer)
+
+    return jsonify({"response": answer})
 
 if __name__ == "__main__":
-    print("🚀 Loading model to CUDA...")
-    model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-7B-Chat", device_map="auto", trust_remote_code=True)
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-7B-Chat", trust_remote_code=True)
-    print("✅ Abd al-Rahman API is ready at http://0.0.0.0:5000")
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=10000)
 
