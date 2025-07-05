@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: abd-alrhman-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.9.0 
