@@ -15,19 +15,23 @@ You prefer concise and deep responses and always aim for meaningful output.
 """
 
 app = Flask(__name__)
-
-# ✅ إعداد CORS بشكل يسمح لواجهة Vercel بالوصول
 CORS(app, origins=["https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app"])
+
+# إعداد النموذج كمتغيرات عالمية
+model = None
+tokenizer = None
 
 @app.route("/api", methods=["POST", "OPTIONS"])
 def api():
     if request.method == "OPTIONS":
-        # رد على طلبات preflight
         response = app.make_default_options_response()
         response.headers.add("Access-Control-Allow-Origin", "https://abd-alrhman-frontend-20nptmpug-mohammadabdrbos-projects.vercel.app")
         response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
         response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
         return response
+
+    if model is None or tokenizer is None:
+        return jsonify({"error": "Model not loaded"}), 503
 
     data = request.get_json()
     msg = data.get("message", "")
@@ -51,10 +55,11 @@ def api():
     save_interaction(msg, reply)
     return jsonify({"reply": reply})
 
-print("🚀 Loading model to CUDA...")
-model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-7B-Chat", device_map="auto", trust_remote_code=True)
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-7B-Chat", trust_remote_code=True)
-
 if __name__ == "__main__":
+    print("🚀 Loading model to CUDA...")
+    model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-7B-Chat", device_map="auto", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-7B-Chat", trust_remote_code=True)
+
     print("✅ Abd al-Rahman API is ready at http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000)
+
