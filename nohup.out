@@ -20,3 +20,6 @@ Warning: import flash_attn fail, please install FlashAttention to get higher eff
 84.108.23.16 - - [04/Jul/2025 21:54:18] "[33mGET / HTTP/1.1[0m" 404 -
 84.108.23.16 - - [04/Jul/2025 21:54:19] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
 84.108.23.16 - - [04/Jul/2025 21:54:24] "[33mGET / HTTP/1.1[0m" 404 -
+84.108.23.16 - - [05/Jul/2025 00:05:30] "[31m[1mGET /api HTTP/1.1[0m" 405 -
+64.62.156.202 - - [05/Jul/2025 12:33:35] "[33mGET / HTTP/1.1[0m" 404 -
+64.62.156.208 - - [05/Jul/2025 12:33:49] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
