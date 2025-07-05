@@ -9,7 +9,9 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements and install Python dependencies
 COPY requirements_cloud.txt .
-RUN pip install --no-cache-dir -r requirements_cloud.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements_cloud.txt
 
 # Copy application code
 COPY . .
