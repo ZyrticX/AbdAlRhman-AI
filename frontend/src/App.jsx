@@ -50,16 +50,17 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api", {
+      const res = await fetch("https://abdalrhman.duckdns.org/api", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: input }),
-      });
+      },
+      body: JSON.stringify({ message: input }),
+    });
+
 
       const data = await res.json();
-      const botMessage = { type: "assistant", text: data.reply };
+      const botMessage = { type: "assistant", text: data.response };
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
       setMessages((prev) => [
